@@ -28,7 +28,7 @@
 
 <div align="center">
 
-[中文](./README_cn.md) | English
+English | [中文](./README_cn.md) 
 
 </div>
 
