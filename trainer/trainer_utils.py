@@ -1,5 +1,5 @@
 """
-训练工具函数集合
+Training utility functions
 """
 import os
 import sys
@@ -43,7 +43,7 @@ def get_lr(current_step, total_steps, lr):
 
 def init_distributed_mode():
     if int(os.environ.get("RANK", -1)) == -1:
-        return 0  # 非DDP模式
+        return 0  # none DDP mode
 
     dist.init_process_group(backend="nccl")
     local_rank = int(os.environ["LOCAL_RANK"])
@@ -104,14 +104,14 @@ def lm_checkpoint(lm_config, weight='full_sft', model=None, optimizer=None, epoc
         os.replace(resume_tmp, resume_path)
         del state_dict, resume_data
         torch.cuda.empty_cache()
-    else:  # 加载模式
+    else:  # mode
         if os.path.exists(resume_path):
             ckp_data = torch.load(resume_path, map_location='cpu')
             saved_ws = ckp_data.get('world_size', 1)
             current_ws = dist.get_world_size() if dist.is_initialized() else 1
             if saved_ws != current_ws:
                 ckp_data['step'] = ckp_data['step'] * saved_ws // current_ws
-                Logger(f'GPU数量变化({saved_ws}→{current_ws})，step已自动转换为{ckp_data["step"]}')
+                Logger(f'GPUQuantity change({saved_ws}→{current_ws})，stepAutomatically converted to{ckp_data["step"]}')
             return ckp_data
         return None
 

@@ -54,7 +54,7 @@ class MiniMindConfig(PretrainedConfig):
         self.rms_norm_eps = rms_norm_eps
         self.rope_theta = rope_theta
         self.inference_rope_scaling = inference_rope_scaling
-        # 外推长度 = factor * original_max_position_embeddings = 32768
+        #  = factor * original_max_position_embeddings = 32768
         self.rope_scaling = {
             "beta_fast": 32,
             "beta_slow": 1,
@@ -69,13 +69,13 @@ class MiniMindConfig(PretrainedConfig):
         # When use_moe is false, the following is invalid
         ####################################################
         self.use_moe = use_moe
-        self.num_experts_per_tok = num_experts_per_tok  # 每个token选择的专家数量
-        self.n_routed_experts = n_routed_experts  # 总的专家数量
-        self.n_shared_experts = n_shared_experts  # 共享专家
-        self.scoring_func = scoring_func  # 评分函数，默认为'softmax'
-        self.aux_loss_alpha = aux_loss_alpha  # 辅助损失的alpha参数
-        self.seq_aux = seq_aux  # 是否在序列级别上计算辅助损失
-        self.norm_topk_prob = norm_topk_prob  # 是否标准化top-k概率
+        self.num_experts_per_tok = num_experts_per_tok  # token
+        self.n_routed_experts = n_routed_experts  # 
+        self.n_shared_experts = n_shared_experts  # 
+        self.scoring_func = scoring_func  # ，'softmax'
+        self.aux_loss_alpha = aux_loss_alpha  # alpha
+        self.seq_aux = seq_aux  # 
+        self.norm_topk_prob = norm_topk_prob  # top-k
 
 
 # 📘📘📘📘📘📘📘📘📘📘📘📘📘📘📘📘📘📘📘📘📘📘📘📘📘📘📘📘📘📘📘📘📘📘📘📘📘📘📘📘📘📘📘📘📘📘📘📘
@@ -168,7 +168,7 @@ class Attention(nn.Module):
 
     def forward(self,
                 x: torch.Tensor,
-                position_embeddings: Tuple[torch.Tensor, torch.Tensor],  # 修改为接收cos和sin
+                position_embeddings: Tuple[torch.Tensor, torch.Tensor],  # cos和sin
                 past_key_value: Optional[Tuple[torch.Tensor, torch.Tensor]] = None,
                 use_cache=False,
                 attention_mask: Optional[torch.Tensor] = None):
@@ -181,7 +181,7 @@ class Attention(nn.Module):
         cos, sin = position_embeddings
         xq, xk = apply_rotary_pos_emb(xq, xk, cos, sin)
 
-        # kv_cache实现
+        # kv_cache
         if past_key_value is not None:
             xk = torch.cat([past_key_value[0], xk], dim=1)
             xv = torch.cat([past_key_value[1], xv], dim=1)
@@ -304,7 +304,7 @@ class MOEFeedForward(nn.Module):
         identity = x
         orig_shape = x.shape
         bsz, seq_len, _ = x.shape
-        # 使用门控机制选择专家
+        # 
         topk_idx, topk_weight, aux_loss = self.gate(x)
         x = x.view(-1, x.shape[-1])
         flat_topk_idx = topk_idx.view(-1)
@@ -331,10 +331,10 @@ class MOEFeedForward(nn.Module):
         idxs = flat_expert_indices.argsort()
         tokens_per_expert = flat_expert_indices.bincount().cpu().numpy().cumsum(0)
         token_idxs = idxs // self.config.num_experts_per_tok
-        # 当tokens_per_expert = [6, 15, 20, 26]，tokens_per_expert.shape[0]即为专家数量（此时为4）
-        # 且token_idxs = [3, 7, 19, 21, 24, 25,  4,  5,  6, 10, 11, 12...] 时
-        # 意味token_idxs[:6] -> [3, 7, 19, 21, 24, 25]这6个位置属于专家0处理的token（每个token有可能被多个专家处理，这取决于num_experts_per_tok）
-        # 接下来9个位置token_idxs[6:15] -> [4,  5,  6, 10, 11, 12...]属于专家1处理的token...依此类推
+        # Whentokens_per_expert = [6, 15, 20, 26]，tokens_per_expert.shape[0]（此time为4）
+        # 且token_idxs = [3, 7, 19, 21, 24, 25,  4,  5,  6, 10, 11, 12...] time
+        # token_idxs[:6] -> [3, 7, 19, 21, 24, 25]这60token（token，num_experts_per_tok）
+        # 9token_idxs[6:15] -> [4,  5,  6, 10, 11, 12...]1token...
         for i, end_idx in enumerate(tokens_per_expert):
             start_idx = 0 if i == 0 else tokens_per_expert[i - 1]
             if start_idx == end_idx:

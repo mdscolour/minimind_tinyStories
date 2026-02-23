@@ -10,20 +10,20 @@ st.set_page_config(page_title="MiniMind", initial_sidebar_state="collapsed")
 
 st.markdown("""
     <style>
-        /* 添加操作按钮样式 */
+        /* Add operation button styles */
         .stButton button {
-            border-radius: 50% !important;  /* 改为圆形 */
-            width: 32px !important;         /* 固定宽度 */
-            height: 32px !important;        /* 固定高度 */
-            padding: 0 !important;          /* 移除内边距 */
+            border-radius: 50% !important;  /* Change to circle */
+            width: 32px !important;         /* Fixed width */
+            height: 32px !important;        /* Fixed height */
+            padding: 0 !important;          /* Remove padding */
             background-color: transparent !important;
             border: 1px solid #ddd !important;
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
             font-size: 14px !important;
-            color: #666 !important;         /* 更柔和的颜色 */
-            margin: 5px 10px 5px 0 !important;  /* 调整按钮间距 */
+            color: #666 !important;         /* Softer color */
+            margin: 5px 10px 5px 0 !important;  /*  */
         }
         .stButton button:hover {
             border-color: #999 !important;
@@ -37,9 +37,9 @@ st.markdown("""
             margin-bottom: -35px !important;
         }
         
-        /* 重置按钮基础样式 */
+        /*  */
         .stButton > button {
-            all: unset !important;  /* 重置所有默认样式 */
+            all: unset !important;  /*  */
             box-sizing: border-box !important;
             border-radius: 50% !important;
             width: 18px !important;
@@ -58,7 +58,7 @@ st.markdown("""
             color: #888 !important;
             cursor: pointer !important;
             transition: all 0.2s ease !important;
-            margin: 0 2px !important;  /* 调整这里的 margin 值 */
+            margin: 0 2px !important;  /*  margin 值 */
         }
 
     </style>
@@ -76,19 +76,19 @@ def process_assistant_content(content):
 
     if '<think>' in content and '</think>' in content:
         content = re.sub(r'(<think>)(.*?)(</think>)',
-                         r'<details style="font-style: italic; background: rgba(222, 222, 222, 0.5); padding: 10px; border-radius: 10px;"><summary style="font-weight:bold;">推理内容（展开）</summary>\2</details>',
+                         r'<details style="font-style: italic; background: rgba(222, 222, 222, 0.5); padding: 10px; border-radius: 10px;"><summary style="font-weight:bold;">（）</summary>\2</details>',
                          content,
                          flags=re.DOTALL)
 
     if '<think>' in content and '</think>' not in content:
         content = re.sub(r'<think>(.*?)$',
-                         r'<details open style="font-style: italic; background: rgba(222, 222, 222, 0.5); padding: 10px; border-radius: 10px;"><summary style="font-weight:bold;">推理中...</summary>\1</details>',
+                         r'<details open style="font-style: italic; background: rgba(222, 222, 222, 0.5); padding: 10px; border-radius: 10px;"><summary style="font-weight:bold;">...</summary>\1</details>',
                          content,
                          flags=re.DOTALL)
 
     if '<think>' not in content and '</think>' in content:
         content = re.sub(r'(.*?)</think>',
-                         r'<details style="font-style: italic; background: rgba(222, 222, 222, 0.5); padding: 10px; border-radius: 10px;"><summary style="font-weight:bold;">推理内容（展开）</summary>\1</details>',
+                         r'<details style="font-style: italic; background: rgba(222, 222, 222, 0.5); padding: 10px; border-radius: 10px;"><summary style="font-weight:bold;">（）</summary>\1</details>',
                          content,
                          flags=re.DOTALL)
 
@@ -151,15 +151,15 @@ def delete_conversation(index):
     st.rerun()
 
 
-st.sidebar.title("模型设定调整")
+st.sidebar.title("")
 
-# st.sidebar.text("训练数据偏差，增加上下文记忆时\n多轮对话（较单轮）容易出现能力衰减")
+# st.sidebar.text("，\n（）")
 st.session_state.history_chat_num = st.sidebar.slider("Number of Historical Dialogues", 0, 6, 0, step=2)
 # st.session_state.history_chat_num = 0
 st.session_state.max_new_tokens = st.sidebar.slider("Max Sequence Length", 256, 8192, 8192, step=1)
 st.session_state.temperature = st.sidebar.slider("Temperature", 0.6, 1.2, 0.85, step=0.01)
 
-model_source = st.sidebar.radio("选择模型来源", ["本地模型", "API"], index=0)
+model_source = st.sidebar.radio("", ["", "API"], index=0)
 
 if model_source == "API":
     api_url = st.sidebar.text_input("API URL", value="http://127.0.0.1:8000/v1")
@@ -176,7 +176,7 @@ else:
         "MiniMind2-Small (0.02B)": ["../MiniMind2-Small", "MiniMind2-Small"]
     }
 
-    selected_model = st.sidebar.selectbox('Models', list(MODEL_PATHS.keys()), index=2)  # 默认选择 MiniMind2
+    selected_model = st.sidebar.selectbox('Models', list(MODEL_PATHS.keys()), index=2)  #  MiniMind2
     model_path = MODEL_PATHS[selected_model][0]
     slogan = f"Hi, I'm {MODEL_PATHS[selected_model][1]}"
 
@@ -188,7 +188,7 @@ st.markdown(
     f'<img src="{image_url}" style="width: 45px; height: 45px; "> '
     f'<span style="font-size: 26px; margin-left: 10px;">{slogan}</span>'
     '</div>'
-    '<span style="color: #bbb; font-style: italic; margin-top: 6px; margin-bottom: 10px;">内容完全由AI生成，请务必仔细甄别<br>Content AI-generated, please discern with care</span>'
+    '<span style="color: #bbb; font-style: italic; margin-top: 6px; margin-bottom: 10px;">AI，<br>Content AI-generated, please discern with care</span>'
     '</div>',
     unsafe_allow_html=True
 )
@@ -205,7 +205,7 @@ def setup_seed(seed):
 
 
 def main():
-    if model_source == "本地模型":
+    if model_source == "":
         model, tokenizer = load_model_tokenizer(model_path)
     else:
         model, tokenizer = None, None
@@ -229,7 +229,7 @@ def main():
                 f'<div style="display: flex; justify-content: flex-end;"><div style="display: inline-block; margin: 10px 0; padding: 8px 12px 8px 12px;  background-color: gray; border-radius: 10px; color:white; ">{message["content"]}</div></div>',
                 unsafe_allow_html=True)
 
-    prompt = st.chat_input(key="input", placeholder="给 MiniMind 发送消息")
+    prompt = st.chat_input(key="input", placeholder="给 MiniMind ")
 
     if hasattr(st.session_state, 'regenerate') and st.session_state.regenerate:
         prompt = st.session_state.last_user_message
@@ -256,7 +256,7 @@ def main():
                         api_key=api_key,
                         base_url=api_url
                     )
-                    history_num = st.session_state.history_chat_num + 1  # +1 是为了包含当前的用户消息
+                    history_num = st.session_state.history_chat_num + 1  # +1 
                     conversation_history = system_prompt + st.session_state.chat_messages[-history_num:]
                     answer = ""
                     response = client.chat.completions.create(
@@ -272,7 +272,7 @@ def main():
                         placeholder.markdown(process_assistant_content(answer), unsafe_allow_html=True)
 
                 except Exception as e:
-                    answer = f"API调用出错: {str(e)}"
+                    answer = f"API: {str(e)}"
                     placeholder.markdown(answer, unsafe_allow_html=True)
             else:
                 random_seed = random.randint(0, 2 ** 32 - 1)

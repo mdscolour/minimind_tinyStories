@@ -20,7 +20,6 @@ from trainer.trainer_utils import get_lr, Logger, is_main_process, lm_checkpoint
 
 warnings.filterwarnings('ignore')
 
-
 def logits_to_log_probs(logits, labels):
     # logits shape: (batch_size, seq_len, vocab_size)
     # labels shape: (batch_size, seq_len)
@@ -31,13 +30,13 @@ def logits_to_log_probs(logits, labels):
 
 
 def dpo_loss(ref_log_probs, policy_log_probs, mask, beta):
-    # ref_log_probs 和 policy_log_probs 都是 shape: (batch_size, seq_len)
+    # ref_log_probs and policy_log_probs all yes. shape: (batch_size, seq_len)
     # https://github.com/jingyaogong/minimind/issues/298
-    seq_lengths = mask.sum(dim=1, keepdim=True).clamp_min(1e-8)  # 防止零长度mask导致除零NaN
+    seq_lengths = mask.sum(dim=1, keepdim=True).clamp_min(1e-8)  # maskNaN
     ref_log_probs = (ref_log_probs * mask).sum(dim=1) / seq_lengths.squeeze()
     policy_log_probs = (policy_log_probs * mask).sum(dim=1) / seq_lengths.squeeze()
 
-    # 将 chosen 和 rejected 数据分开
+    # 将 chosen and rejected 
     batch_size = ref_log_probs.shape[0]
     chosen_ref_log_probs = ref_log_probs[:batch_size // 2]
     reject_ref_log_probs = ref_log_probs[batch_size // 2:]
@@ -122,47 +121,47 @@ def train_epoch(epoch, loader, iters, ref_model, lm_config, start_step=0, wandb=
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="MiniMind DPO (Direct Preference Optimization)")
-    parser.add_argument("--save_dir", type=str, default="../out", help="模型保存目录")
-    parser.add_argument('--save_weight', default='dpo', type=str, help="保存权重的前缀名")
-    parser.add_argument("--epochs", type=int, default=1, help="训练轮数")
+    parser.add_argument("--save_dir", type=str, default="../out", help="Model save directory")
+    parser.add_argument('--save_weight', default='dpo', type=str, help="Weight save prefix name")
+    parser.add_argument("--epochs", type=int, default=1, help="Training epochs")
     parser.add_argument("--batch_size", type=int, default=4, help="batch size")
-    parser.add_argument("--learning_rate", type=float, default=4e-8, help="初始学习率（建议<=5e-8避免遗忘）")
-    parser.add_argument("--device", type=str, default="cuda:0" if torch.cuda.is_available() else "cpu", help="训练设备")
-    parser.add_argument("--dtype", type=str, default="bfloat16", help="混合精度类型")
-    parser.add_argument("--num_workers", type=int, default=8, help="数据加载线程数")
-    parser.add_argument("--accumulation_steps", type=int, default=1, help="梯度累积步数")
-    parser.add_argument("--grad_clip", type=float, default=1.0, help="梯度裁剪阈值")
-    parser.add_argument("--log_interval", type=int, default=100, help="日志打印间隔")
-    parser.add_argument("--save_interval", type=int, default=100, help="模型保存间隔")
-    parser.add_argument('--hidden_size', default=512, type=int, help="隐藏层维度")
-    parser.add_argument('--num_hidden_layers', default=8, type=int, help="隐藏层数量")
-    parser.add_argument('--max_seq_len', default=1024, type=int, help="训练的最大截断长度（中文1token≈1.5~1.7字符）")
-    parser.add_argument('--use_moe', default=0, type=int, choices=[0, 1], help="是否使用MoE架构（0=否，1=是）")
-    parser.add_argument("--data_path", type=str, default="../dataset/dpo.jsonl", help="DPO训练数据路径")
-    parser.add_argument('--from_weight', default='full_sft', type=str, help="基于哪个权重训练")
-    parser.add_argument('--from_resume', default=0, type=int, choices=[0, 1], help="是否自动检测&续训（0=否，1=是）")
-    parser.add_argument('--beta', default=0.1, type=float, help="DPO中的beta参数")
-    parser.add_argument("--use_wandb", action="store_true", help="是否使用wandb")
-    parser.add_argument("--wandb_project", type=str, default="MiniMind-DPO", help="wandb项目名")
-    parser.add_argument("--use_compile", default=0, type=int, choices=[0, 1], help="是否使用torch.compile加速（0=否，1=是）")
+    parser.add_argument("--learning_rate", type=float, default=4e-8, help="Initial learning rate（<=5e-8）")
+    parser.add_argument("--device", type=str, default="cuda:0" if torch.cuda.is_available() else "cpu", help="Training device")
+    parser.add_argument("--dtype", type=str, default="bfloat16", help="Mixed precision type")
+    parser.add_argument("--num_workers", type=int, default=8, help="Data loader workers")
+    parser.add_argument("--accumulation_steps", type=int, default=1, help="Gradient accumulation steps")
+    parser.add_argument("--grad_clip", type=float, default=1.0, help="Gradient clip threshold")
+    parser.add_argument("--log_interval", type=int, default=100, help="Log interval")
+    parser.add_argument("--save_interval", type=int, default=100, help="Save interval")
+    parser.add_argument('--hidden_size', default=512, type=int, help="Hidden layer dimension")
+    parser.add_argument('--num_hidden_layers', default=8, type=int, help="Number of hidden layers")
+    parser.add_argument('--max_seq_len', default=1024, type=int, help="（Chinese1token≈1.5~1.7chars）")
+    parser.add_argument('--use_moe', default=0, type=int, choices=[0, 1], help="yesnoMoEarchitecture（0=no，1=yes）")
+    parser.add_argument("--data_path", type=str, default="../dataset/dpo.jsonl", help="DPO")
+    parser.add_argument('--from_weight', default='full_sft', type=str, help="")
+    parser.add_argument('--from_resume', default=0, type=int, choices=[0, 1], help="yesno&（0=no，1=yes）")
+    parser.add_argument('--beta', default=0.1, type=float, help="DPObeta")
+    parser.add_argument("--use_wandb", action="store_true", help="yesnowandb")
+    parser.add_argument("--wandb_project", type=str, default="MiniMind-DPO", help="wandb")
+    parser.add_argument("--use_compile", default=0, type=int, choices=[0, 1], help="yesnotorch.compile（0=no，1=yes）")
     args = parser.parse_args()
 
-    # ========== 1. 初始化环境和随机种子 ==========
+    # ========== 1.  ==========
     local_rank = init_distributed_mode()
     if dist.is_initialized(): args.device = f"cuda:{local_rank}"
     setup_seed(42 + (dist.get_rank() if dist.is_initialized() else 0))
     
-    # ========== 2. 配置目录、模型参数、检查ckp ==========
+    # ========== 2.  ==========
     os.makedirs(args.save_dir, exist_ok=True)
     lm_config = MiniMindConfig(hidden_size=args.hidden_size, num_hidden_layers=args.num_hidden_layers, use_moe=bool(args.use_moe))
     ckp_data = lm_checkpoint(lm_config, weight=args.save_weight, save_dir='../checkpoints') if args.from_resume==1 else None
     
-    # ========== 3. 设置混合精度 ==========
+    # ========== 3.  ==========
     device_type = "cuda" if "cuda" in args.device else "cpu"
     dtype = torch.bfloat16 if args.dtype == "bfloat16" else torch.float16
     autocast_ctx = nullcontext() if device_type == "cpu" else torch.cuda.amp.autocast(dtype=dtype)
     
-    # ========== 4. 配wandb ==========
+    # ========== 4.  ==========
     wandb = None
     if args.use_wandb and is_main_process():
         import swanlab as wandb
@@ -171,24 +170,24 @@ if __name__ == "__main__":
         wandb_run_name = f"MiniMind-DPO-Epoch-{args.epochs}-BatchSize-{args.batch_size}-LR-{args.learning_rate}"
         wandb.init(project=args.wandb_project, name=wandb_run_name, id=wandb_id, resume=resume)
     
-    # ========== 5. 定义模型和参考模型 ==========
+    # ========== 5.  ==========
     model, tokenizer = init_model(lm_config, args.from_weight, device=args.device)
     if args.use_compile == 1:
         model = torch.compile(model)
         Logger('torch.compile enabled')
-    Logger(f'策略模型总参数量：{sum(p.numel() for p in model.parameters()) / 1e6:.3f} M')
-    # 初始化参考模型（ref_model冻结）
+    Logger(f'：{sum(p.numel() for p in model.parameters()) / 1e6:.3f} M')
+    # （ref_model）
     ref_model, _ = init_model(lm_config, args.from_weight, device=args.device)
     ref_model.eval()
     ref_model.requires_grad_(False)
-    Logger(f'参考模型总参数量：{sum(p.numel() for p in ref_model.parameters()) / 1e6:.3f} M')
+    Logger(f'：{sum(p.numel() for p in ref_model.parameters()) / 1e6:.3f} M')
     
     train_ds = DPODataset(args.data_path, tokenizer, max_length=args.max_seq_len)
     train_sampler = DistributedSampler(train_ds) if dist.is_initialized() else None
     scaler = torch.cuda.amp.GradScaler(enabled=(args.dtype == 'float16'))
     optimizer = optim.AdamW(model.parameters(), lr=args.learning_rate)
     
-    # ========== 6. 从ckp恢复状态 ==========
+    # ========== 6.  ==========
     start_epoch, start_step = 0, 0
     if ckp_data:
         model.load_state_dict(ckp_data['model'])
@@ -197,12 +196,12 @@ if __name__ == "__main__":
         start_epoch = ckp_data['epoch']
         start_step = ckp_data.get('step', 0)
     
-    # ========== 7. DDP包模型 ==========
+    # ========== 7.  ==========
     if dist.is_initialized():
         model._ddp_params_and_buffers_to_ignore = {"freqs_cos", "freqs_sin"}
         model = DistributedDataParallel(model, device_ids=[local_rank])
     
-    # ========== 8. 开始训练 ==========
+    # ========== 8.  ==========
     for epoch in range(start_epoch, args.epochs):
         train_sampler and train_sampler.set_epoch(epoch)
         setup_seed(42 + epoch); indices = torch.randperm(len(train_ds)).tolist()
@@ -210,10 +209,10 @@ if __name__ == "__main__":
         batch_sampler = SkipBatchSampler(train_sampler or indices, args.batch_size, skip)
         loader = DataLoader(train_ds, batch_sampler=batch_sampler, num_workers=args.num_workers, pin_memory=True)
         if skip > 0: 
-            Logger(f'Epoch [{epoch + 1}/{args.epochs}]: 跳过前{start_step}个step，从step {start_step + 1}开始')
+            Logger(f'Epoch [{epoch + 1}/{args.epochs}]: {start_step}个step，从step {start_step + 1}')
             train_epoch(epoch, loader, len(loader) + skip, ref_model, lm_config, start_step, wandb, args.beta)
         else:
             train_epoch(epoch, loader, len(loader), ref_model, lm_config, 0, wandb, args.beta)
     
-    # ========== 9. 清理分布进程 ==========
+    # ========== 9.  ==========
     if dist.is_initialized(): dist.destroy_process_group()

@@ -7,11 +7,11 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 def pre_processing_chat(conversations, add_system_ratio=0.2):
     SYSTEM_PROMPTS = [
-        "你是一个知识丰富的AI，尽力为用户提供准确的信息。",
-        "你是minimind，一个小巧但有用的语言模型。",
-        "你是一个专业的AI助手，请提供有价值的回答。",
-        "你是minimind，请尽力帮助用户解决问题。",
-        "你是一个可靠的AI，请给出准确的回答。",
+        "You are a knowledgeable AI, providing accurate information to users.",
+        "You are MiniMind, a small but useful language model.",
+        "You are a professional AI assistant, providing valuable answers.",
+        "You areminimind，help users solve problems。",
+        "You are a reliable AI, providing accurate answers.",
         "You are a helpful AI assistant.",
         "You are minimind, a lightweight intelligent assistant.",
         "You are a friendly chatbot. Please answer the user's questions carefully.",
@@ -97,7 +97,7 @@ class SFTDataset(Dataset):
         input_ids = self.tokenizer(prompt).input_ids[:self.max_length]
         input_ids += [self.tokenizer.pad_token_id] * (self.max_length - len(input_ids))
         labels = self.generate_labels(input_ids)
-        # # === 调试打印 ===
+        # # === Debug print ===
         # print(f"\n--- Sample {index} ---")
         # for i, (x, y) in enumerate(zip(input_ids[:-1], labels[1:])):
         #     print(f"{i:3d}: X={self.tokenizer.decode([x])!r:16s} ---> Y={self.tokenizer.decode([input_ids[i+1]])!r:16s} label={y}")
@@ -120,8 +120,8 @@ class DPODataset(Dataset):
 
     def __getitem__(self, index):
         sample = self.samples[index]
-        chosen = sample['chosen']  # 是一个 list，里面包含若干 {role, content}
-        rejected = sample['rejected']  # 同上
+        chosen = sample['chosen']  # is a list containing {role, content}
+        rejected = sample['rejected']  # Same as above
         chosen_prompt = self.tokenizer.apply_chat_template(
             chosen, tokenize=False, add_generation_prompt=False
         )
@@ -200,7 +200,7 @@ class RLAIFDataset(Dataset):
         prompt = self.tokenizer.apply_chat_template(
             messages[:-1],
             tokenize=False,
-            add_generation_prompt=True  # 这里需要True
+            add_generation_prompt=True  # Here needs True
         )
         prompt = post_processing_chat(prompt)
         return prompt, answer

@@ -12,7 +12,7 @@ from model.model_minimind import MiniMindConfig, MiniMindForCausalLM
 warnings.filterwarnings('ignore', category=UserWarning)
 
 
-# MoE模型需使用此函数转换
+# MoE
 def convert_torch2transformers_minimind(torch_path, transformers_path, dtype=torch.float16):
     MiniMindConfig.register_for_auto_class()
     MiniMindForCausalLM.register_for_auto_class("AutoModelForCausalLM")
@@ -20,19 +20,19 @@ def convert_torch2transformers_minimind(torch_path, transformers_path, dtype=tor
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     state_dict = torch.load(torch_path, map_location=device)
     lm_model.load_state_dict(state_dict, strict=False)
-    lm_model = lm_model.to(dtype)  # 转换模型权重精度
+    lm_model = lm_model.to(dtype)  # 
     model_params = sum(p.numel() for p in lm_model.parameters() if p.requires_grad)
-    print(f'模型参数: {model_params / 1e6} 百万 = {model_params / 1e9} B (Billion)')
+    print(f': {model_params / 1e6}  = {model_params / 1e9} B (Billion)')
     lm_model.save_pretrained(transformers_path, safe_serialization=False)
     tokenizer = AutoTokenizer.from_pretrained('../model/')
     tokenizer.save_pretrained(transformers_path)
-    # 兼容transformers-5.0的写法
+    # transformers-5.0
     config_path = os.path.join(transformers_path, "tokenizer_config.json")
     json.dump({**json.load(open(config_path, 'r', encoding='utf-8')), "tokenizer_class": "PreTrainedTokenizerFast", "extra_special_tokens": {}}, open(config_path, 'w', encoding='utf-8'), indent=2, ensure_ascii=False)
-    print(f"模型已保存为 Transformers-MiniMind 格式: {transformers_path}")
+    print(f" Transformers-MiniMind : {transformers_path}")
 
 
-# LlamaForCausalLM结构兼容第三方生态
+# LlamaForCausalLM
 def convert_torch2transformers_llama(torch_path, transformers_path, dtype=torch.float16):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     state_dict = torch.load(torch_path, map_location=device)
@@ -50,22 +50,22 @@ def convert_torch2transformers_llama(torch_path, transformers_path, dtype=torch.
     )
     llama_model = LlamaForCausalLM(llama_config)
     llama_model.load_state_dict(state_dict, strict=False)
-    llama_model = llama_model.to(dtype)  # 转换模型权重精度
+    llama_model = llama_model.to(dtype)  # 
     llama_model.save_pretrained(transformers_path)
     model_params = sum(p.numel() for p in llama_model.parameters() if p.requires_grad)
-    print(f'模型参数: {model_params / 1e6} 百万 = {model_params / 1e9} B (Billion)')
+    print(f': {model_params / 1e6}  = {model_params / 1e9} B (Billion)')
     tokenizer = AutoTokenizer.from_pretrained('../model/')
     tokenizer.save_pretrained(transformers_path)
-    # 兼容transformers-5.0的写法
+    # transformers-5.0
     config_path = os.path.join(transformers_path, "tokenizer_config.json")
     json.dump({**json.load(open(config_path, 'r', encoding='utf-8')), "tokenizer_class": "PreTrainedTokenizerFast", "extra_special_tokens": {}}, open(config_path, 'w', encoding='utf-8'), indent=2, ensure_ascii=False)
-    print(f"模型已保存为 Transformers-Llama 格式: {transformers_path}")
+    print(f" Transformers-Llama : {transformers_path}")
 
 
 def convert_transformers2torch(transformers_path, torch_path):
     model = AutoModelForCausalLM.from_pretrained(transformers_path, trust_remote_code=True)
     torch.save({k: v.cpu().half() for k, v in model.state_dict().items()}, torch_path)
-    print(f"模型已保存为 PyTorch 格式 (half精度): {torch_path}")
+    print(f" PyTorch  (half): {torch_path}")
 
 
 if __name__ == '__main__':
